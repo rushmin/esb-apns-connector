@@ -1,0 +1,13 @@
+<template name="init" xmlns="http://ws.apache.org/ns/synapse">
+
+    <parameter name="destination" description="Sandbox or Production" />
+
+    <parameter name="certificateAttachmentName" description="Name of the certificate attachment" />
+    <parameter name="password" description="Password of the certificate" />
+
+    <sequence class="sequence">
+        <property name="apns.destination" expression="$func:destination" />
+        <property name="apns.certificateAttachmentName" expression="$func:certificateAttachmentName" />
+        <property name="apns.password" expression="$func:password" />
+   </sequence>
+</template>

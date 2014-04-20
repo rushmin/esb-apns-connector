@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry xmlns="http://ws.apache.org/ns/synapse" key="apns_config">
+   <apns.init>
+      <environment>sandbox</environment>
+      <name>gov:/repository/components/org.wso2.apn/apns.p12</name>
+      <password>twujhgt</password>
+   </apns.init>
+   <description/>
+</localEntry>
