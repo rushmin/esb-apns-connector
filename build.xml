@@ -21,10 +21,10 @@
 
     <property file="build.properties"/>
 
+    <property name="connector.name" value="apns-connector-1.0.0.zip"/>	
+
     <property name="synapse.lib.dir" value="${esb.home}/repository/deployment/server/synapse-libs"/>
     <property name="synapse.proxy-services.dir" value="${esb.home}/repository/deployment/server/synapse-configs/default/proxy-services"/>
-    <property name="synapse.sequences.dir" value="${esb.home}/repository/deployment/server/synapse-configs/default/sequences"/>
-    <property name="synapse.local-entries.dir" value="${esb.home}/repository/deployment/server/synapse-configs/default/local-entries"/>
 
     <target name="package">
 
@@ -38,20 +38,14 @@
     <target name="copy-connector" depends="package">
 
         <!-- Copy the connector -->
-        <copy file="target/apn-connector.zip" todir="${synapse.lib.dir}"/>
+        <copy file="target/${connector.name}" todir="${synapse.lib.dir}"/>
 
     </target>
 
     <target name="copy-config">
 
-        <!-- Copy apns_config local entry -->
-        <copy file="config/apns_config.xml" todir="${synapse.local-entries.dir}"/>
-
-        <!-- Copy sequence definition -->
-        <copy file="config/apns_test_sequence.xml" todir="${synapse.sequences.dir}"/>
-
 	<!-- Copy proxy service -->
-        <copy file="config/apns_proxy_service.xml" todir="${synapse.proxy-services.dir}"/>
+        <copy file="config/apns_push_proxy.xml" todir="${synapse.proxy-services.dir}"/>
 
 
     </target>
