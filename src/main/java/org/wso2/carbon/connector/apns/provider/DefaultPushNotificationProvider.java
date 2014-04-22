@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.connector.apns.provider;
 
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
