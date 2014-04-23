@@ -139,7 +139,7 @@ public class PushNotification {
      */
     public String getSingleDeviceToken() {
 
-	if (deviceTokens.size() > 0) {
+	if (!deviceTokens.isEmpty()) {
 	    return (String) deviceTokens.toArray()[0];
 	} else {
 	    return null;

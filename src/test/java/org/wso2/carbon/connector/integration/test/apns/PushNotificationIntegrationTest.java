@@ -17,11 +17,18 @@
  */
 package org.wso2.carbon.connector.integration.test.apns;
 
-import static org.wso2.carbon.connector.apns.Utils.SOAPResponseConstants.*;
+import static org.wso2.carbon.connector.apns.Utils.SOAPResponseConstants.NS_URI_APNS;
+import static org.wso2.carbon.connector.apns.Utils.SOAPResponseConstants.TAG_DISPATCH_TO_DEVICE_RESULT;
+import static org.wso2.carbon.connector.apns.Utils.SOAPResponseConstants.TAG_SUCCESSFUL;
 
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.UUID;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -43,7 +50,6 @@ import org.wso2.carbon.automation.api.clients.proxy.admin.ProxyServiceAdminClien
 import org.wso2.carbon.automation.api.clients.utils.AuthenticateStub;
 import org.wso2.carbon.automation.core.ProductConstant;
 import org.wso2.carbon.automation.utils.axis2client.ConfigurationContextProvider;
-import org.wso2.carbon.connector.apns.Payload;
 import org.wso2.carbon.connector.apns.PushNotificationRequest;
 import org.wso2.carbon.connector.apns.Utils;
 import org.wso2.carbon.connector.integration.test.common.ConnectorIntegrationUtil;
@@ -199,23 +205,10 @@ public class PushNotificationIntegrationTest extends ESBIntegrationTest {
 			    new QName(NS_URI_APNS,
 				    TAG_DISPATCH_TO_DEVICE_RESULT));
 
-	    OMElement deviceTokenTag = resultParentTag
+	    OMElement successfulTag = resultParentTag
 		    .getFirstChildWithName(new QName(NS_URI_APNS,
-			    TAG_DEVICE_TOKEN));
-	    Assert.assertEquals(deviceToken, deviceTokenTag.getText());
-
-	    OMElement alertTag = resultParentTag
-		    .getFirstChildWithName(new QName(NS_URI_APNS, TAG_ALERT));
-	    Assert.assertTrue(alertTag.getText().isEmpty());
-
-	    OMElement badgeTag = resultParentTag
-		    .getFirstChildWithName(new QName(NS_URI_APNS, TAG_BADGE));
-	    Assert.assertEquals(Payload.NO_BADGE,
-		    Integer.parseInt(badgeTag.getText()));
-
-	    OMElement soundTag = resultParentTag
-		    .getFirstChildWithName(new QName(NS_URI_APNS, TAG_SOUND));
-	    Assert.assertTrue(soundTag.getText().isEmpty());
+			    TAG_SUCCESSFUL));
+	    Assert.assertEquals("true", successfulTag.getText());
 
 	} finally {
 	    proxyAdmin.deleteProxy(proxyServiceName);
@@ -287,22 +280,10 @@ public class PushNotificationIntegrationTest extends ESBIntegrationTest {
 			    new QName(NS_URI_APNS,
 				    TAG_DISPATCH_TO_DEVICE_RESULT));
 
-	    OMElement deviceTokenTag = resultParentTag
+	    OMElement successfulTag = resultParentTag
 		    .getFirstChildWithName(new QName(NS_URI_APNS,
-			    TAG_DEVICE_TOKEN));
-	    Assert.assertEquals(deviceToken, deviceTokenTag.getText());
-
-	    OMElement alertTag = resultParentTag
-		    .getFirstChildWithName(new QName(NS_URI_APNS, TAG_ALERT));
-	    Assert.assertEquals(alert, alertTag.getText());
-
-	    OMElement badgeTag = resultParentTag
-		    .getFirstChildWithName(new QName(NS_URI_APNS, TAG_BADGE));
-	    Assert.assertEquals(badge, Integer.parseInt(badgeTag.getText()));
-
-	    OMElement soundTag = resultParentTag
-		    .getFirstChildWithName(new QName(NS_URI_APNS, TAG_SOUND));
-	    Assert.assertEquals(sound, soundTag.getText());
+			    TAG_SUCCESSFUL));
+	    Assert.assertEquals("true", successfulTag.getText());
 
 	} finally {
 	    proxyAdmin.deleteProxy(proxyServiceName);

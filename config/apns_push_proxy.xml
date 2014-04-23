@@ -12,8 +12,11 @@
            <property name="destination"
                      expression="//apns:destination/text()"/>
 
-           <property name="certificateAttachmentName"
-                     expression="//apns:certificateAttachmentName/text()"/>
+			<property name="certificateFetchMethod"
+                     expression="//apns:certificateFetchMethod/text()"/>
+
+           <property name="certificateRegistryPath"
+                     expression="//apns:certificateRegistryPath/text()"/>
 
            <property name="password"
                      expression="//apns:password/text()"/>
@@ -32,7 +35,8 @@
 
            <apns.init>
                <destination>{$ctx:destination}</destination>
-               <certificateAttachmentName>{$ctx:certificateAttachmentName}</certificateAttachmentName>
+               <certificateFetchMethod>{$ctx:certificateFetchMethod}</certificateFetchMethod>
+               <certificateRegistryPath>{$ctx:certificateRegistryPath}</certificateRegistryPath>
                <password>{$ctx:password}</password>
            </apns.init>
            <apns.dispatchToDevice >

@@ -43,15 +43,23 @@ public abstract class AbstractPushNotificationProvider {
 	    throws PushNotificationException {
 
 	if (request.isToProductionDestination()) {
-	    log.debug(String
-		    .format("<apsn:%s> Sending the push notification to production destination.",
-			    request.getId()));
+
+	    if (log.isDebugEnabled()) {
+		log.debug(String
+			.format("<apsn:%s> Sending the push notification to production destination.",
+				request.getId()));
+	    }
 	    return sendToProductionDestination(request);
+
 	} else if (request.isToSandboxDestination()) {
-	    log.debug(String
-		    .format("<apns:%s> Sending the push notification to sandbox destination.",
-			    request.getId()));
+
+	    if (log.isDebugEnabled()) {
+		log.debug(String
+			.format("<apns:%s> Sending the push notification to sandbox destination.",
+				request.getId()));
+	    }
 	    return sendToSandboxDestination(request);
+
 	} else {
 	    String errorMessage = String.format(
 		    "<apns:%s> Destination '%s' is not valid", request.getId(),

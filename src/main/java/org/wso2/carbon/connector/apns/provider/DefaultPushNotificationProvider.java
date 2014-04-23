@@ -114,17 +114,23 @@ public class DefaultPushNotificationProvider extends
 
 	// Build the payload
 	String payload = getPayload(pushNotification);
-	log.debug(String.format("<apns:%s>Payload : %s", request.getId(),
-		payload));
+
+	if (log.isDebugEnabled()) {
+	    log.debug(String.format("<apns:%s>Payload : %s", request.getId(),
+		    payload));
+	}
 
 	String deviceToken = pushNotification.getSingleDeviceToken();
 
 	ApnsNotification result = null;
 	if (deviceToken != null) {
 
-	    log.debug(String
-		    .format("<apns:%s> Sending push notification to device token : <%s>",
-			    request.getId(), deviceToken));
+	    if (log.isDebugEnabled()) {
+		log.debug(String
+			.format("<apns:%s> Sending push notification to device token : <%s>",
+				request.getId(), deviceToken));
+
+	    }
 
 	    try {
 		result = apnsService.push(deviceToken, payload);

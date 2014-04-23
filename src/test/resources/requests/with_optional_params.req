@@ -9,6 +9,7 @@
     <apns:pushMessage xmlns:apns="urn:org.wso2.carbon.connector.apns">
       <apns:config>
         <apns:destination>%s</apns:destination>
+        <apns:certificateFetchMethod>attachment</apns:certificateFetchMethod>
         <apns:certificateAttachmentName>%s</apns:certificateAttachmentName>
         <apns:password>%s</apns:password>
       </apns:config>

@@ -17,13 +17,20 @@
  */
 package org.wso2.carbon.connector.apns;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.synapse.MessageContext;
+import org.apache.synapse.registry.Registry;
+import org.wso2.carbon.connector.apns.Utils.Errors;
+import org.wso2.carbon.connector.apns.Utils.PropertyNames;
+import org.wso2.carbon.connector.apns.Utils.PropertyOptions;
 import org.wso2.carbon.connector.apns.provider.ProviderRegistry;
 import org.wso2.carbon.connector.core.AbstractConnector;
 import org.wso2.carbon.connector.core.ConnectException;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.wso2.carbon.mediation.registry.WSO2Registry;
+import org.wso2.carbon.registry.api.RegistryException;
+import org.wso2.carbon.registry.api.Resource;
 
 /**
  * Connector which sends a push notification request to Apple Push Notification
@@ -58,23 +65,28 @@ public class DispatchToDevice extends AbstractConnector {
 
 	    // Extract the push notification request.
 	    pushNotificationRequest = getPushNotificationRequest(messageContext);
-	    log.debug(String.format(
-		    "<message:%s> Processing APNs request \n%s",
+
+	    log.info(String.format("<message:%s> Processing APNs request \n%s",
 		    messageContext.getMessageID(),
 		    pushNotificationRequest.toString()));
 
 	    // Get the notification provider.
 	    AbstractPushNotificationProvider pushNotificationProvider = ProviderRegistry
 		    .getProvider();
-	    log.debug(String.format(
-		    "<apns:%s> Push notification provider : <%s>",
-		    pushNotificationRequest.getId(), pushNotificationProvider
-			    .getClass().getName()));
+
+	    if (log.isDebugEnabled()) {
+		log.debug(String.format(
+			"<apns:%s> Push notification provider : <%s>",
+			pushNotificationRequest.getId(),
+			pushNotificationProvider.getClass().getName()));
+
+	    }
 
 	    // Send the notification.
 	    PushNotificationResponse response = pushNotificationProvider
 		    .send(pushNotificationRequest);
-	    log.debug(String.format("<apns:%s> Push notification sent.",
+
+	    log.info(String.format("<apns:%s> Push notification sent.",
 		    pushNotificationRequest.getId()));
 
 	    // Build and set a SOAP envelope in the message context.
@@ -86,13 +98,22 @@ public class DispatchToDevice extends AbstractConnector {
 			Utils.Errors.ERROR_CODE_RESPONSE_BUILDING_FAILURE);
 	    }
 
-	} catch (PushNotificationException e) {
+	} catch (Exception e) {
+
+	    PushNotificationException pne = null;
+
+	    if (e instanceof PushNotificationException) {
+		pne = (PushNotificationException) e;
+	    } else {
+		pne = new PushNotificationException("Unknown error",
+			Errors.ERROR_CODE_UNKNOWN_ERROR, e);
+	    }
 
 	    String errorMessage = String.format(
 		    "Error in sending push notification. Error Code : <%s>",
-		    e.getErrorCode());
-	    Utils.setError(messageContext, e);
-	    this.handleException(errorMessage, e, messageContext);
+		    pne.getErrorCode());
+	    Utils.setError(messageContext, pne);
+	    this.handleException(errorMessage, pne, messageContext);
 	}
 
     }
@@ -136,12 +157,98 @@ public class DispatchToDevice extends AbstractConnector {
     private Certificate getCertificate(MessageContext messageContext)
 	    throws PushNotificationException {
 
+	// Get the certificate fetch method.
+	String certificateFetchMethod = Utils.getMandatoryPropertyAsString(
+		messageContext, Utils.PropertyNames.CERTIFICATE_FETCH_METHOD);
+
+	// Get certificate info.
+	Certificate certificate = null;
+
+	if (Utils.PropertyOptions.CERTIFICATE_FETCH_METHOD_ATTACHMENT
+		.equals(certificateFetchMethod)) {
+	    certificate = getCertificateFromAttachment(messageContext);
+
+	    if (log.isDebugEnabled()) {
+		log.debug("Fetched certificate from attachment.");
+	    }
+	} else if (PropertyOptions.CERTIFICATE_FETCH_METHOD_REGISTYR
+		.equals(certificateFetchMethod)) {
+	    certificate = getCertificateFromRegistry(messageContext);
+	    
+	    if (log.isDebugEnabled()) {
+		log.debug("Fetched certificate from registry.");
+	    }
+	} else {
+	    throw new PushNotificationException(String.format(
+		    "Certificate fetch method '%s' is not allowed.",
+		    certificateFetchMethod),
+		    Errors.ERROR_CODE_ILLEGAL_PARAMETER);
+	}
+
+	return certificate;
+    }
+
+    /**
+     * Extracts and returns the certificate from ESB registry.
+     * 
+     * @param messageContext
+     *            Synapse message context.
+     * @return Certificate.
+     * @throws PushNotificationException
+     *             When the certificate cannot be extracted from the attachment.
+     */
+    private Certificate getCertificateFromRegistry(MessageContext messageContext)
+	    throws PushNotificationException {
+
+	// Get the registry path.
+	String certificateRegistryPath = Utils.getMandatoryPropertyAsString(
+		messageContext, PropertyNames.CERTIFICATE_REGISTRY_PATH);
+
+	// Get content from the registry resource.
+	Registry registry = messageContext.getConfiguration().getRegistry();
+	WSO2Registry wso2Registry = (WSO2Registry) registry;
+	Resource resource = wso2Registry.getResource(certificateRegistryPath);
+
+	if (resource == null) {
+	    throw new PushNotificationException(String.format(
+		    "No certificate in registry path %s",
+		    certificateRegistryPath),
+		    Errors.ERROR_CODE_INVALID_CERTIFICATE_INFO);
+	}
+
+	InputStream content = null;
+	try {
+	    content = resource.getContentStream();
+	} catch (RegistryException e) {
+	    throw new PushNotificationException(String.format(
+		    "Certificate content in registry, <%s> cannot be read",
+		    certificateRegistryPath),
+		    Errors.ERROR_CODE_INVALID_CERTIFICATE_INFO);
+	}
+
+	// Get the password.
+	String password = Utils.getMandatoryPropertyAsString(messageContext,
+		Utils.PropertyNames.PASSWORD);
+
+	return new Certificate(certificateRegistryPath, content, password);
+    }
+
+    /**
+     * Extracts and returns the certificate from SOAP attachment.
+     * 
+     * @param messageContext
+     *            Synapse message context.
+     * @return Certificate.
+     * @throws PushNotificationException
+     *             When the certificate cannot be extracted from the attachment.
+     */
+    private Certificate getCertificateFromAttachment(
+	    MessageContext messageContext) throws PushNotificationException {
+
 	// Get certificate info.
 	String certificateName = Utils
 		.getMandatoryPropertyAsString(messageContext,
 			Utils.PropertyNames.CERTIFICATE_ATTACHMENT_NAME);
-	String password = Utils.getMandatoryPropertyAsString(messageContext,
-		Utils.PropertyNames.PASSWORD);
 
 	// Extract certificate content.
 	InputStream content = Utils.extractAttachment(messageContext,
@@ -155,10 +262,11 @@ public class DispatchToDevice extends AbstractConnector {
 		    Utils.Errors.ERROR_CODE_INVALID_CERTIFICATE_INFO);
 	}
 
-	Certificate certificate = new Certificate(certificateName, content,
-		password);
+	// Get the password.
+	String password = Utils.getMandatoryPropertyAsString(messageContext,
+		Utils.PropertyNames.PASSWORD);
 
-	return certificate;
+	return new Certificate(certificateName, content, password);
     }
 
     /**

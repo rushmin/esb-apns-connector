@@ -12,6 +12,9 @@
            <property name="destination"
                      expression="//apns:destination/text()"/>
 
+		   <property name="certificateFetchMethod"
+                     expression="//apns:certificateFetchMethod/text()"/>
+
            <property name="certificateAttachmentName"
                      expression="//apns:certificateAttachmentName/text()"/>
 
@@ -32,6 +35,7 @@
 
            <apns.init>
                <destination>{$ctx:destination}</destination>
+               <certificateFetchMethod>{$ctx:certificateFetchMethod}</certificateFetchMethod>
                <certificateAttachmentName>{$ctx:certificateAttachmentName}</certificateAttachmentName>
                <password>{$ctx:password}</password>
            </apns.init>

@@ -120,8 +120,11 @@ public class Utils {
 		    Errors.ERROR_CODE_ILLEGAL_PARAMETER);
 	}
 
-	log.debug(String.format("Property found. <key : '%s' , value : '%s'>",
-		key, (String) property));
+	if (log.isDebugEnabled()) {
+	    log.debug(String.format(
+		    "Property found. <key : '%s' , value : '%s'>", key,
+		    (String) property));
+	}
 
 	return (String) property;
 
@@ -154,12 +157,19 @@ public class Utils {
 	}
 
 	if (property != null) {
-	    log.debug(String.format(
-		    "Property found. <key : '%s' , value : '%s'>", key,
-		    (String) property));
+	    if (log.isDebugEnabled()) {
+		log.debug(String.format(
+			"Property found. <key : '%s' , value : '%s'>", key,
+			(String) property));
+	    }
+
 	} else {
-	    log.debug(String.format(
-		    "Skipping optional property <%s> not found.", key));
+
+	    if (log.isDebugEnabled()) {
+		log.debug(String.format(
+			"Skipping optional property <%s> (not found).", key));
+	    }
+
 	}
 
 	return (String) property;
@@ -189,32 +199,11 @@ public class Utils {
 	OMElement resultTag = factory.createOMElement(
 		SOAPResponseConstants.TAG_DISPATCH_TO_DEVICE_RESULT, ns);
 
-	// Add device token tag.
+	// Add 'successful' tag.
 	OMElement resultChild = factory.createOMElement(
-		SOAPResponseConstants.TAG_DEVICE_TOKEN, ns);
-	resultChild.addChild(factory.createOMText(response.getDeviceToken()));
+		SOAPResponseConstants.TAG_SUCCESSFUL, ns);
+	resultChild.addChild(factory.createOMText("true"));
 	resultTag.addChild(resultChild);
-
-	// Add alert tag.
-	resultChild = factory.createOMElement(SOAPResponseConstants.TAG_ALERT,
-		ns);
-	resultChild.addChild(factory.createOMText(response.getAlert()));
-	resultTag.addChild(resultChild);
-
-	// Add sound tag.
-	resultChild = factory.createOMElement(SOAPResponseConstants.TAG_SOUND,
-		ns);
-	resultChild.addChild(factory.createOMText(response.getSound()));
-	resultTag.addChild(resultChild);
-
-	// Add badge tag.
-	resultChild = factory.createOMElement(SOAPResponseConstants.TAG_BADGE,
-		ns);
-	resultChild.addChild(factory.createOMText(Integer.toString(response
-		.getBadge())));
-	resultTag.addChild(resultChild);
-	
-	log.debug("  -- response -- " + resultTag);
 
 	messageContext
 		.setEnvelope(TransportUtils.createSOAPEnvelope(resultTag));
@@ -289,6 +278,11 @@ public class Utils {
 	 */
 	public static final String ERROR_CODE_PAYLOAD_ERROR = "APNS_000006";
 
+	/**
+	 * Non of above.
+	 */
+	public static final String ERROR_CODE_UNKNOWN_ERROR = "APNS_000007";
+
     }
 
     /**
@@ -300,6 +294,17 @@ public class Utils {
 	 * Key for push notification service destination name.
 	 */
 	public static final String DESTINATION = "apns.destination";
+
+	/**
+	 * The way to find the certificate. SOAP attachment and ESB registry
+	 * resource are supported as of now.
+	 */
+	public static final String CERTIFICATE_FETCH_METHOD = "apns.certificateFetchMethod";
+
+	/**
+	 * Registry resource path of the certificate.
+	 */
+	public static final String CERTIFICATE_REGISTRY_PATH = "apns.certificateRegistryPath";
 
 	/**
 	 * Key for certificate attachment name.
@@ -334,6 +339,25 @@ public class Utils {
     }
 
     /**
+     * Holds option constants for property keys.
+     */
+    public static class PropertyOptions {
+
+	/**
+	 * <code>attachment</code> option for
+	 * <code>certificateFetchMethod</code> property.
+	 */
+	public static final String CERTIFICATE_FETCH_METHOD_ATTACHMENT = "attachment";
+
+	/**
+	 * <code>registry</code> option for <code>certificateFetchMethod</code>
+	 * property.
+	 */
+	public static final String CERTIFICATE_FETCH_METHOD_REGISTYR = "registry";
+
+    }
+
+    /**
      * Holds SAOP response constants for tag names, name spaces etc ..
      */
     public static class SOAPResponseConstants {
@@ -342,50 +366,32 @@ public class Utils {
 	 * Name space URI
 	 */
 	public static final String NS_URI_APNS = "urn:org.wso2.carbon.connector.apns";
-	
+
 	/**
 	 * Name space
 	 */
 	public static final String NS_APNS = "apns";
 
-	
 	/**
 	 * Name of the result tag.
 	 */
 	public static final String TAG_DISPATCH_TO_DEVICE_RESULT = "dispatchToDeviceResult";
 
-	
 	/**
-	 * Name of the device token tag.
+	 * Name of the successful tag.
 	 */
-	public static final String TAG_DEVICE_TOKEN = "deviceToken";
-	
-	/**
-	 * Name of the alert message tag.
-	 */
-	public static final String TAG_ALERT = "alert";
-	
-	/**
-	 * Name of the badge value tag.
-	 */
-	public static final String TAG_BADGE = "badge";
-	
-	/**
-	 * Name of the sound clip name tag.
-	 */
-	public static final String TAG_SOUND = "sound";
+	public static final String TAG_SUCCESSFUL = "successful";
 
-	
 	/**
 	 * Name of the error code tag.
 	 */
 	public static final String TAG_ERROR_CODE = "errorCode";
-	
+
 	/**
 	 * Name of the error message tag.
 	 */
 	public static final String TAG_ERROR_MESSAGE = "errorMessage";
-	
+
 	/**
 	 * Name of the error response tag.
 	 */
