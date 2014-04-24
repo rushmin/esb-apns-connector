@@ -98,16 +98,17 @@ public class DispatchToDevice extends AbstractConnector {
 			Utils.Errors.ERROR_CODE_RESPONSE_BUILDING_FAILURE);
 	    }
 
+	} catch (PushNotificationException pne) {
+
+	    String errorMessage = String.format(
+		    "Error in sending push notification. Error Code : <%s>",
+		    pne.getErrorCode());
+	    Utils.setError(messageContext, pne);
+	    this.handleException(errorMessage, pne, messageContext);
 	} catch (Exception e) {
 
-	    PushNotificationException pne = null;
-
-	    if (e instanceof PushNotificationException) {
-		pne = (PushNotificationException) e;
-	    } else {
-		pne = new PushNotificationException("Unknown error",
-			Errors.ERROR_CODE_UNKNOWN_ERROR, e);
-	    }
+	    PushNotificationException pne = new PushNotificationException(
+		    "Unknown error", Errors.ERROR_CODE_UNKNOWN_ERROR, e);
 
 	    String errorMessage = String.format(
 		    "Error in sending push notification. Error Code : <%s>",
@@ -166,6 +167,7 @@ public class DispatchToDevice extends AbstractConnector {
 
 	if (Utils.PropertyOptions.CERTIFICATE_FETCH_METHOD_ATTACHMENT
 		.equals(certificateFetchMethod)) {
+
 	    certificate = getCertificateFromAttachment(messageContext);
 
 	    if (log.isDebugEnabled()) {
@@ -173,8 +175,9 @@ public class DispatchToDevice extends AbstractConnector {
 	    }
 	} else if (PropertyOptions.CERTIFICATE_FETCH_METHOD_REGISTYR
 		.equals(certificateFetchMethod)) {
+
 	    certificate = getCertificateFromRegistry(messageContext);
-	    
+
 	    if (log.isDebugEnabled()) {
 		log.debug("Fetched certificate from registry.");
 	    }
